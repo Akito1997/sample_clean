@@ -1,15 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/todo.dart';
-import '../../data/todo_repository.dart';
 import '../../domain/use_cases/get_todos_use_case.dart';
+import '../../domain/use_cases/add_todo_use_case.dart';
+import '../../domain/use_cases/update_todo_use_case.dart';
+import '../../domain/use_cases/delete_todo_use_case.dart';
 import '../../domain/errors/todo_errors.dart';
 
 class TodoController extends StateNotifier<AsyncValue<List<Todo>>> {
-  final TodoRepository _repository;
   final GetTodosUseCase _getTodosUseCase;
+  final AddTodoUseCase _addTodoUseCase;
+  final UpdateTodoUseCase _updateTodoUseCase;
+  final DeleteTodoUseCase _deleteTodoUseCase;
 
-  TodoController(this._repository, this._getTodosUseCase)
-      : super(const AsyncValue.loading()) {
+  TodoController(
+    this._getTodosUseCase,
+    this._addTodoUseCase,
+    this._updateTodoUseCase,
+    this._deleteTodoUseCase,
+  ) : super(const AsyncValue.loading()) {
     loadTodos();
   }
 
@@ -40,7 +48,7 @@ class TodoController extends StateNotifier<AsyncValue<List<Todo>>> {
       categoryId: categoryId,
     );
 
-    await _repository.addTodo(todo);
+    await _addTodoUseCase.execute(todo);
     await loadTodos();
   }
 
@@ -52,19 +60,19 @@ class TodoController extends StateNotifier<AsyncValue<List<Todo>>> {
         orElse: () => throw TodoNotFoundFailure(),
       );
       final updatedTodo = todo.copyWith(categoryId: categoryId);
-      await _repository.updateTodo(updatedTodo);
+      await _updateTodoUseCase.execute(updatedTodo);
       await loadTodos();
     }
   }
 
   Future<void> toggleTodo(Todo todo) async {
     final updatedTodo = todo.copyWith(isCompleted: !todo.isCompleted);
-    await _repository.updateTodo(updatedTodo);
+    await _updateTodoUseCase.execute(updatedTodo);
     await loadTodos();
   }
 
   Future<void> deleteTodo(String id) async {
-    await _repository.deleteTodo(id);
+    await _deleteTodoUseCase.execute(id);
     await loadTodos();
   }
 }

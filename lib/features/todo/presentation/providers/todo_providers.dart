@@ -8,6 +8,9 @@ import '../controllers/todo_controller.dart';
 import '../../data/datasources/local_todo_data_source.dart';
 import '../../data/category_repository.dart';
 import '../../data/datasources/local_category_data_source.dart';
+import '../../domain/use_cases/add_todo_use_case.dart';
+import '../../domain/use_cases/update_todo_use_case.dart';
+import '../../domain/use_cases/delete_todo_use_case.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Should be overridden in main.dart');
@@ -28,11 +31,34 @@ final getTodosUseCaseProvider = Provider<GetTodosUseCase>((ref) {
   return GetTodosUseCase(repository);
 });
 
+final addTodoUseCaseProvider = Provider<AddTodoUseCase>((ref) {
+  final repository = ref.watch(todoRepositoryProvider);
+  return AddTodoUseCase(repository);
+});
+
+final updateTodoUseCaseProvider = Provider<UpdateTodoUseCase>((ref) {
+  final repository = ref.watch(todoRepositoryProvider);
+  return UpdateTodoUseCase(repository);
+});
+
+final deleteTodoUseCaseProvider = Provider<DeleteTodoUseCase>((ref) {
+  final repository = ref.watch(todoRepositoryProvider);
+  return DeleteTodoUseCase(repository);
+});
+
 final todoControllerProvider =
     StateNotifierProvider<TodoController, AsyncValue<List<Todo>>>((ref) {
-  final repository = ref.watch(todoRepositoryProvider);
   final getTodosUseCase = ref.watch(getTodosUseCaseProvider);
-  return TodoController(repository, getTodosUseCase);
+  final addTodoUseCase = ref.watch(addTodoUseCaseProvider);
+  final updateTodoUseCase = ref.watch(updateTodoUseCaseProvider);
+  final deleteTodoUseCase = ref.watch(deleteTodoUseCaseProvider);
+
+  return TodoController(
+    getTodosUseCase,
+    addTodoUseCase,
+    updateTodoUseCase,
+    deleteTodoUseCase,
+  );
 });
 
 final localCategoryDataSourceProvider =
